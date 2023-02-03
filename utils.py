@@ -41,22 +41,6 @@ def get_world():
 
 
 
-def get_master_ip(self):
-    if os.environ.get('MASTER_ADDR') is not None: 
-        ip = os.environ.get('MASTER_ADDR')
-        return ip
-    else:
-        raise ValueError("did not find master node ip")
-
-def get_master_port(self):
-    if os.environ.get('MASTER_PORT') is not None: 
-        port = os.environ.get('MASTER_PORT')
-        return port
-    else:
-        raise ValueError("did not find master node port")
-
-
-
 def all_reduce(data):
 
     torch.distributed.all_reduce(data, op=torch.distributed.ReduceOp.SUM)
