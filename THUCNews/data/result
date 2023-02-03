@@ -1,0 +1,10 @@
+(1) FC + Bert Test Loss: 0.37, Test Acc:88.54%
+(2) CNN + Bert Test Loss: 0.37, Test Acc:88.34%
+(3) RNN + Bert  Test Loss: 0.42, Test Acc:87.42%
+(4) DPCNN + Bert Test Loss: 0.36, Test Acc:88.40%
+(5)               Test Loss: 0.37, Test Acc:88.61%
+
+(6)  RCNN + Bert Loss:  1.7, Test Acc:43.01% mask=x[0]
+(7) RCNN + Bert est Loss: 0.41, Test Acc:88.03%
+(8) ERNIE + FC Test Loss: 0.19, Test Acc:94.09%
+(9) ERNIE + DPCNN Test Loss: 0.18, Test Acc:94.20%
