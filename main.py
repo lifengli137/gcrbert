@@ -43,12 +43,7 @@ if __name__ == '__main__':
     model_name = args.model                                         
     x = import_module('models.' + model_name)                       
     config = x.Config(args)                                         
-                                                                    
-    BertModel.from_pretrained('bert-base-chinese')                  
-    BertTokenizer.from_pretrained('bert-base-chinese')              
-                                                                    
-    model = x.Model(config)                                         
-                                                                    
+
     np.random.seed(seed)                                       
     torch.manual_seed(seed)                                    
     torch.cuda.manual_seed_all(seed)                           
@@ -62,9 +57,18 @@ if __name__ == '__main__':
     if os.environ.get('MASTER_PORT') is not None:        
         port = os.environ.get('MASTER_PORT')             
 
-    print("1")
+
     torch.distributed.init_process_group(backend='nccl', init_method="tcp://" + ip + ":" + port, rank=utils.get_world_rank(), world_size=utils.get_world()) 
-    print("2")
+
+    if utils.get_local_rank() == 0: # Only rank 0 per node download the model here
+        BertModel.from_pretrained('bert-base-chinese')                  
+        BertTokenizer.from_pretrained('bert-base-chinese')      
+    torch.distributed.barrier()        
+                                                                        
+    model = x.Model(config)                                         
+                                                                    
+    
+
     torch.cuda.set_device(utils.get_local_rank())                                                                                                                      
     model.cuda(torch.cuda.current_device())               
     model = DDP(model, device_ids=[utils.get_local_rank()])                                  
