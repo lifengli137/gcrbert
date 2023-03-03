@@ -4,7 +4,7 @@ import sys
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-import horovod.torch as hvd
+#import horovod.torch as hvd
 import os
 
 class Communication(object):
