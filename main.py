@@ -31,15 +31,18 @@ if __name__ == '__main__':
     model_name = args.model
     x = import_module('models.' + model_name)
     config = x.Config(args)
-
+    print("1")
     config.comm = Communication(lib=args.lib)
+    print("2")
 
 #    if config.comm.get_local_rank() == 0:
     BertModel.from_pretrained('bert-base-chinese')
     BertTokenizer.from_pretrained('bert-base-chinese') 
 #    config.comm.sync()
 
+    print("3")
     model = x.Model(config)
+    print("4")
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -47,6 +50,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     torch.cuda.set_device(config.comm.get_local_rank())
+    print("5")
 #    try:
 #        config.checkpoint = torch.load(config.checkpoint_path, map_location='cpu')
 #        config.continue_training = True

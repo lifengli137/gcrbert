@@ -4,7 +4,7 @@ import sys
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-#import horovod.torch as hvd
+import horovod.torch as hvd
 import os
 
 class Communication(object):
@@ -39,7 +39,9 @@ class Communication(object):
 
         if self.lib == "pytorch":
             model.cuda(torch.cuda.current_device())
+            print("before DDP")
             model = DDP(model, device_ids=[self.get_local_rank()])
+            print("after DDP")
         else: # Horovod
             print("self.handler.broadcast_parameters(model.state_dict(), root_rank=0)")
             self.handler.broadcast_parameters(model.state_dict(), root_rank=0)
