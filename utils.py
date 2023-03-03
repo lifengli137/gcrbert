@@ -8,47 +8,6 @@ import pickle as pkl
 import os
 from pytorch_pretrained_bert import BertTokenizer
 
-def get_world_rank():                                             
-                                                                
-    rank = 0
-    if os.environ.get('OMPI_COMM_WORLD_RANK') is not None: 
-        rank = int(os.environ.get('OMPI_COMM_WORLD_RANK'))
-    elif os.environ.get('RANK') is not None: 
-        rank = int(os.environ.get('RANK'))                         
-                                                                
-    return rank                                                 
-                                                                
-def get_local_rank():                                       
-                                                                
-    rank = 0
-
-    if os.environ.get('OMPI_COMM_WORLD_LOCAL_RANK') is not None: 
-        rank = int(os.environ.get('OMPI_COMM_WORLD_LOCAL_RANK'))
-    elif os.environ.get('LOCAL_RANK') is not None: 
-        rank = int(os.environ.get('LOCAL_RANK'))                                                         
-                                                                
-    return rank                                                 
-                                                                
-def get_world():                                            
-                                                                
-    world = 1
-    if os.environ.get('OMPI_COMM_WORLD_SIZE') is not None:
-        world = int(os.environ.get('OMPI_COMM_WORLD_SIZE'))
-    elif os.environ.get('WORLD_SIZE') is not None:
-        world = int(os.environ.get('WORLD_SIZE'))               
-                                                                
-    return world                                            
-
-
-
-def all_reduce(data):
-
-    torch.distributed.all_reduce(data, op=torch.distributed.ReduceOp.SUM)
-    data /= float(get_world())
- 
-    return data
-
-
 PAD, CLS = '[PAD]', '[CLS]'
 
 
@@ -88,6 +47,7 @@ def load_dataset(data_path, config):
             contents.append((token_ids, int(label), seq_len, mask))
 
     return contents
+
 
 def tensorize_dataset(dataset):
 
@@ -140,7 +100,8 @@ def get_time_dif(start_time):
 
 def build_dataloader(data, config, training=True):
     if training is True:
-        sampler = DistributedSampler(data, num_replicas=get_world(), rank=get_world_rank())
+        print("sampler = DistributedSampler(data, num_replicas=config.comm.get_world(), rank=config.comm.get_rank())" + str(config.comm.get_world()) + " " + str(config.comm.get_rank()) )
+        sampler = DistributedSampler(data, num_replicas=config.comm.get_world(), rank=config.comm.get_rank())
     else:
         sampler = RandomSampler(data)
     dataloader = DataLoader(data, sampler=sampler, batch_size=config.batch_size)

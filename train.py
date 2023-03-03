@@ -8,7 +8,7 @@ import time
 import os
 from shutil import copyfile
 from pytorch_pretrained_bert.optimization import BertAdam
-import utils
+
 
 def train(config, model, train_iter, dev_iter, test_iter):
     """
@@ -30,6 +30,11 @@ def train(config, model, train_iter, dev_iter, test_iter):
                          warmup=config.warmup,
                          t_total=len(train_iter) * (config.num_epochs - config.start_epoch))
 
+    if config.continue_training:
+        optimizer.load_state_dict(config.checkpoint['optimizer_state_dict'])
+        config.comm.sync()
+
+    optimizer = config.comm.broadcast_optimizer(model, optimizer)
 
     start_time = time.time()
     # activate BatchNormalization & dropout
@@ -40,7 +45,7 @@ def train(config, model, train_iter, dev_iter, test_iter):
     dev_best_loss = config.start_loss
 
     for epoch in range(config.start_epoch, config.num_epochs):
-        if utils.get_world_rank() == 0:
+        if config.comm.get_rank() == 0:
             print('Epoch [{}/{}]'.format(epoch + 1, config.num_epochs))
         for i, (token_ids, label, seq_len, mask) in enumerate(train_iter):
             token_ids = token_ids.to(config.device)
@@ -57,7 +62,7 @@ def train(config, model, train_iter, dev_iter, test_iter):
                 dev_acc, dev_loss = evaluate(config, model, dev_iter)
                 if dev_loss < dev_best_loss:
                     dev_best_loss = dev_loss
-                    if utils.get_world_rank() == 0:
+                    if config.comm.get_rank() == 0:
                         torch.save({'epoch': epoch,
                                     'loss': dev_loss.item(),
                                     'model_state_dict': model.state_dict(),
@@ -67,12 +72,12 @@ def train(config, model, train_iter, dev_iter, test_iter):
                     improve = ''
                 time_dif = utils.get_time_dif(start_time)
                 msg = 'Iter: {0:>6}, Train Loss: {1:>5.4}, Val Loss: {2:>5.4}, Val Acc: {3:>6.2%}, Time: {4} {5} '
-                loss = utils.all_reduce(loss)
-                if utils.get_world_rank() == 0:
+                loss = config.comm.all_reduce(loss)
+                if config.comm.get_rank() == 0:
                     print(msg.format(total_batch, loss.item(), dev_loss, dev_acc, time_dif, improve))
             total_batch = total_batch + 1
 
-    if utils.get_world_rank() == 0:
+    if config.comm.get_rank() == 0:
         if os.path.exists(config.checkpoint_path) and config.checkpoint_path != config.save_path:
             copyfile(config.checkpoint_path, config.save_path)
             os.remove(config.checkpoint_path)
