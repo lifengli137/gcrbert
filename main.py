@@ -35,10 +35,10 @@ if __name__ == '__main__':
     config.comm = Communication(lib=args.lib)
     print("2")
 
-#    if config.comm.get_local_rank() == 0:
-    BertModel.from_pretrained('bert-base-chinese')
-    BertTokenizer.from_pretrained('bert-base-chinese') 
-#    config.comm.sync()
+    if config.comm.get_local_rank() == 0:
+        BertModel.from_pretrained('bert-base-chinese')
+        BertTokenizer.from_pretrained('bert-base-chinese') 
+    config.comm.sync()
 
     print("3")
     model = x.Model(config)
