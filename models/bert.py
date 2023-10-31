@@ -25,8 +25,10 @@ class Config(object):
         self.job_name = args.job_name
 
         self.checkpoint_path = args.checkpoint_path + '/' + self.model_name
-        if not os.path.exists(self.checkpoint_path):
+        try:
             os.makedirs(self.checkpoint_path)
+        except:
+            pass
         self.checkpoint_path = self.checkpoint_path + '/' + self.job_name + '.ckpt'
 
         self.save_path = args.model_path + '/' + self.job_name + '.ckpt'
